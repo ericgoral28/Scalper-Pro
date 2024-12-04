@@ -1,0 +1,53 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © LvNThL
+
+//@version=5
+indicator("Scalper Pro", overlay = true)
+
+//VARIABLES
+var label _botdot1 = na
+var label _botdot2 = na
+var label _botdot3 = na
+var line _line1 = na
+var line _line2 = na
+var line _line3 = na
+
+_movingaverage1 = ta.sma(close, input.int(30, "Scalping Moving Average 1", group = "MA Period"))
+_movingaverage3 = ta.sma(close, input.int(180, "Scalping Moving Average 2", group = "MA Period"))
+_movingaverage2 = ta.sma(close, input.int(900, "Scalping Moving Average 3", group = "MA Period"))
+_lookbackperiod = input.int(900, "High/Low Period", group = "High/Low")
+_highest = ta.highest(_lookbackperiod)
+_lowest = ta.lowest(_lookbackperiod)
+bool _darkmode = input.bool(true, "Dark Mode?", group = "Switches")
+bool _depth = input.bool(true, "Depth", group = "Switches")
+_percentagechange1 = (close/_movingaverage2) - 1
+_percentagechange2 = (close > _movingaverage2 ? (close/_highest) - 1 : (close/_lowest) - 1)
+
+//TABLE
+var _table1 = table.new(position.top_right, 1, 1, na, color.white, 1, na, na)
+
+if barstate.islast
+
+    table.cell(_table1, 0, 0, text = str.tostring(_percentagechange1, "#.##%") + "    " + str.tostring(close > _movingaverage2 ? string("Bullish") + "    " + str.tostring(_percentagechange2, "#.##%") 
+     : close < _movingaverage2 ? string("Bearish") + "    " + str.tostring(_percentagechange2, "#.##%") : close == _movingaverage2 ? string("Neutral Zone") + "    " + str.tostring(_percentagechange2, "#.##%") : na),
+     text_color = color.white, text_size = size.small, bgcolor = color.rgb(0, 0, 0))
+
+//LABLES
+    _botdot1 := label.new(_depth ? bar_index - 11 : na, close < _movingaverage2 ? _lowest : close > _movingaverage2 ? _highest : na, style = label.style_circle, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), size = size.auto)
+    label.delete(_botdot1[1])
+    _botdot2 := label.new(bar_index - 11, _movingaverage2, style = label.style_circle, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), size = size.auto)
+    label.delete(_botdot2[1])
+    _botdot3 := label.new(bar_index - 11, close, style = label.style_circle, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), size = size.auto)
+    label.delete(_botdot3[1])
+//LINES
+    _line1 := line.new(bar_index - 12, close, bar_index - 11, close, extend = extend.both, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), style=line.style_dotted, width=1)
+    line.delete(_line1[1])
+    _line2 := line.new(bar_index - 11, _movingaverage2, bar_index - 11, close, extend = extend.none, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), style=line.style_dotted, width=1)
+    line.delete(_line2[1])
+    _line3 := line.new(_depth ? bar_index - 11 : na, close > _movingaverage2 ? _highest : close < _movingaverage2 ? _lowest : na, bar_index - 11, close, extend = extend.none, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), style=line.style_dotted, width=1)
+    line.delete(_line3[1])
+
+//PLOTS
+plot(_movingaverage1, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), linewidth = 1, style = plot.style_line)
+plot(_movingaverage3, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), linewidth = 1, style = plot.style_line)
+plot(_movingaverage2, color = _darkmode ? color.rgb(255, 255, 255) : color.rgb(0, 0, 0), linewidth = 1, style = plot.style_line)
